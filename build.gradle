@@ -1,0 +1,62 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+group = 'infinity-alive'
+version = '0.0.1'
+
+repositories {
+  jcenter()
+}
+
+configurations {
+  deployerJars
+}
+
+dependencies {
+  compile 'com.amazonaws:aws-lambda-java-core:1.2.0',
+    'com.amazonaws:aws-lambda-java-log4j2:1.1.0',
+    'com.fasterxml.jackson.core:jackson-core:2.9.7',
+    'com.fasterxml.jackson.core:jackson-databind:2.9.7',
+    'com.fasterxml.jackson.core:jackson-annotations:2.9.7',
+    'org.springframework:spring-context:5.0.10.RELEASE',
+    'org.slf4j:slf4j-api:1.7.25'
+
+  /* 以 annotation 產生 setter, getter, constructor, toString... 之元件 */
+  compileOnly 'org.projectlombok:lombok:1.18.4'
+
+  testCompile 'junit:junit:4.12'
+
+  deployerJars 'org.apache.maven.wagon:wagon-ssh:3.2.0'
+}
+
+
+
+shadowJar {
+  manifest {
+    attributes 'Main-Class': 'pers.infinityalive.awslambda.MainWorkEntry'
+  }
+  configurations = [project.configurations.compile, project.configurations.runtime]
+  archiveName = "awslambda-job-framework-${version}.jar"
+}
+
+task buildZip(type: Zip) {
+  baseName = 'awslambda-job-framework'
+  into('lib') {
+    from './build/libs'
+  }
+}
+
+build.dependsOn buildZip
